@@ -1,8 +1,8 @@
 # The binary to build (just the basename).
-MODULE := blueprint
+MODULE := haitian_creole_teaching_tools
 
 # Where to push the docker image.
-REGISTRY ?= docker.pkg.github.com/martinheinz/python-project-blueprint
+REGISTRY ?= docker.pkg.github.com/martinheinz/repo-name
 
 IMAGE := $(REGISTRY)/$(MODULE)
 
