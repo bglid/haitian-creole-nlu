@@ -1,52 +1,51 @@
 # Haitian Creole Teaching Tools
 
----
+*Description:----*
 
 ## Setup
 
+**Creating an Environment:**
+
+*Note, requires python 3.8 or greater*
+
+**If using python venv, run:**
+
+```
+python -m venv `<your_venv_name>`
+```
+
+*Bash/Zsh Activation*
+
+```
+#bash/zsh
+source <your_venv_name>/bin/activate 
+```
+
+*Windows Activation*
+```
+<your_venv_name>\Scripts\activate.bat
+```
+
+**If using conda, run:**
+
+```
+conda create --name your_env_name python=3.8
+conda activate your_env_name
+```
+
+
+**Installing Dependencies:**
+
+```
+conda install pip #If using conda
+pip install -r requirements.txt
+```
+
+
+
 ## Running
 
-### Using Python Interpreter
+## Citing
 
-```shell
-~ $ make run
-```
-
-## Testing
-
-Test are ran every time you build _dev_ or _prod_ image. You can also run tests using:
-
-```console
-~ $ make test
-```
-
-## Cleaning
-
-Clean _Pytest_ and coverage cache/files:
-
-```console
-~ $ make clean
-```
-
-Clean _Docker_ images:
-
-```console
-~ $ make docker-clean
-```
-
-## Creating Secret Tokens
-
-Token is needed for example for _GitHub Package Registry_. To create one:
-
-- Go to _Settings_ tab
-- Click _Secrets_
-- Click _Add a new secret_
-  - _Name_: _name that will be accessible in GitHub Actions as `secrets.NAME`_
-  - _Value_: _value_
-
-### Resources
-
-- [https://realpython.com/python-application-layouts/](https://realpython.com/python-application-layouts/)
-- [https://dev.to/codemouse92/dead-simple-python-project-structure-and-imports-38c6](https://dev.to/codemouse92/dead-simple-python-project-structure-and-imports-38c6)
-- [https://github.com/navdeep-G/samplemod/blob/master/setup.py](https://github.com/navdeep-G/samplemod/blob/master/setup.py)
-- [https://github.com/GoogleContainerTools/distroless/blob/master/examples/python3/Dockerfile](https://github.com/GoogleContainerTools/distroless/blob/master/examples/python3/Dockerfile)
+* Project setup was inspired by the following:
+  * [Ultimate Setup for Your Next Python Project](https://martinheinz.dev/blog/14)
