@@ -20,7 +20,7 @@ COPY --from=tester /app /app
 
 WORKDIR /app
 
-ENTRYPOINT ["/venv/bin/python3", "-m", "haitian_creole_teaching_tools"]
+ENTRYPOINT ["/venv/bin/python3", "-m", "haitian_creole_nlu"]
 USER 1001
 
 LABEL name={NAME}

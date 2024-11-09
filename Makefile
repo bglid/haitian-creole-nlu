@@ -1,5 +1,5 @@
 # The binary to build (just the basename).
-MODULE := haitian_creole_teaching_tools
+MODULE := haitian_creole_nlu
 
 # Where to push the docker image.
 REGISTRY ?= docker.pkg.github.com/martinheinz/repo-name
