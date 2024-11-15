@@ -4,9 +4,9 @@ Inspired by the CreoleVal paper, this project serves to recreate the Reading Com
 
 ## Setup
 
-**Creating an Environment:**
+#### **Environment Setup:**
 
-*Note, requires python 3.8 or greater*
+*Note, requires python 3.10 or greater*
 
 **If using python venv, run:**
 
@@ -30,15 +30,18 @@ source <your_venv_name>/bin/activate
 **If using conda, run:**
 
 ```
-conda create --name your_env_name python=3.8
+conda create --name your_env_name python=3.10
 conda activate your_env_name
 ```
 
 **Installing Dependencies:**
 
 ```
-conda install pip #If using conda
 pip install -r requirements.txt
+
+#If using conda:
+conda install pip 
+python3 -m pip install -r requirements.txt
 ```
 
 ## Running
