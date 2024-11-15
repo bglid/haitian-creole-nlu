@@ -14,7 +14,7 @@ COPY . /app
 WORKDIR /app
 RUN /venv/bin/pytest
 
-FROM python:3.10-buster:latest AS runner
+FROM python:3.10-busterlatest AS runner
 COPY --from=tester /venv /venv
 COPY --from=tester /app /app
 
