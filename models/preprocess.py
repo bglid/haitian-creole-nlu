@@ -11,7 +11,7 @@ def txt_to_tsv(file_path, output_path):
 
     Args:
         file_path str: File input path
-        output_path str: Output path for tsv files
+        output_path str: Output directory for tsv files
     """
     
     final_output = []
@@ -32,7 +32,7 @@ def txt_to_tsv(file_path, output_path):
                 #concatentating the extra spacing
                 id = lines[0].replace(" ", "")
                 author_info = lines[1] + lines[2]
-                author_info = author_info(" ", "")
+                author_info = author_info.replace(" ", "")
             
                 #Settting a variable for when story starts & sotry end
                 story_start = 3
@@ -64,7 +64,7 @@ def txt_to_tsv(file_path, output_path):
                 final_output.append(output)
                 
                 
-    with open(f"../haitian-creole-nlu/models/Data/{output_path}") as tsv_file:
+    with open(f"../models/Data/{output_path}", 'w') as tsv_file:
         file_reader = csv.writer(tsv_file, delimiter='\t')
         for row in final_output:
             file_reader.writerow(row)                    
@@ -243,4 +243,9 @@ def write_to_json(path, split):
             
 #Enter in files to process below
 if __name__ == "__main__":
-    pass
+
+    #writing the txt files to tsv
+    #NOTE remove ablsolute paths for github push
+    #NOTE 2 - for output path in txt to tsv, we don't need the full file path
+    txt_to_tsv(file_path=r'example directory!', output_path=r'CreoleTranslations/mc160.dev.kreyol1.tsv')
+    txt_to_tsv(file_path=r'example!!', output_path=r'CreoleTranslations/mc160.dev.kreyol2_localized.tsv')
