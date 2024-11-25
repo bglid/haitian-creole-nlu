@@ -247,5 +247,8 @@ if __name__ == "__main__":
     #writing the txt files to tsv
     #NOTE remove ablsolute paths for github push
     #NOTE 2 - for output path in txt to tsv, we don't need the full file path
-    txt_to_tsv(file_path=r'example directory!', output_path=r'CreoleTranslations/mc160.dev.kreyol1.tsv')
-    txt_to_tsv(file_path=r'example!!', output_path=r'CreoleTranslations/mc160.dev.kreyol2_localized.tsv')
+    # txt_to_tsv(file_path=r'example directory!', output_path=r'CreoleTranslations/mc160.dev.kreyol1.tsv')
+    # txt_to_tsv(file_path=r'example!!', output_path=r'CreoleTranslations/mc160.dev.kreyol2_localized.tsv')
+
+    #Writing txts to jsons:
+    write_to_json(path=r'', split=r'')
