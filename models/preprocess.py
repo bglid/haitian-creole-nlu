@@ -88,7 +88,8 @@ def write_to_json(path, split):
     # Paths for writing to json
     full_path = os.path.join(path, split)
     questions_path = f"{full_path}.tsv"
-    answers_path = f"MCTest/mc160.dev.ans"
+    # answers_path = f"MCTest/mc160.dev.ans"
+    answers_path = "./models/Data/MCTestHat1/mc160.dev.ans"
 
     # dictionary for questions:
     q_dict = {}
@@ -254,4 +255,7 @@ if __name__ == "__main__":
     # txt_to_tsv(file_path=r'example!!', output_path=r'CreoleTranslations/mc160.dev.kreyol2_localized.tsv')
 
     # Writing txts to jsons:
-    write_to_json(path=r"", split=r"")
+    write_to_json(
+        path=r"/home/bglid//uni_ms/ling_545/haitian-creole-nlu/models/Data/CreoleTranslations/",
+        split=r"mc160.dev.kreyol1",
+    )
