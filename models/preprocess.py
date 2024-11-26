@@ -89,7 +89,7 @@ def write_to_json(path, split):
     full_path = os.path.join(path, split)
     questions_path = f"{full_path}.tsv"
     # answers_path = f"MCTest/mc160.dev.ans"
-    answers_path = "./models/Data/MCTestHat1/mc160.dev.ans"
+    answers_path = f"{full_path}.ans"
 
     # dictionary for questions:
     q_dict = {}
