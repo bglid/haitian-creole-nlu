@@ -164,7 +164,81 @@ class DataCollatorForMultipleChoice:
 
 # main function to train/eval the model
 def main():
-    pass
+    # setting the args and seed
+    args = parse_args()
+    seed = args.seed
+
+    # setting the random seed
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+    # setting the device to run on gpu if avaialable
+    device = torch.device(args.device)
+    if args.device == "cuda":
+        torch.cuda.manual_seed_all(seed)
+        print(f"% of GPUs available: {torch.cuda.device_count()}")
+        print(f"The GPU that will be used: {torch.cuda.get_device_name(0)}")
+    else:
+        # Here they kill the job if there isn't any gpus
+        print("Running on CPU")
+        print("Killing this job...")
+        exit(333)
+
+    data_path = args.data_dir
+    split = args.split
+
+    # getting examples
+    examples = load_dataset(f"{data_path}")
+    print("***EXAMPLES***")
+    print(examples)
+
+    tokenized_mct = examples.map(preprocess_function, batched=True)
+
+    # setting up the model for training
+    if args.action == "train":
+        model = AutoModelForMultipleChoice.from_pretrained(args.from_pretrained).to(
+            device
+        )
+
+        # reminder to set up Weights and Biases here~
+
+        # early stopping for when the model converges early:
+        early_stopping = EarlyStoppingCallback(
+            early_stopping_patience=10, early_stopping_threshold=0.001
+        )
+
+        # setting up training parameters from our parse_args
+        training_args = TrainingArguments(
+            output_dir=os.path.join(args.output_dir),  # took out experiment directory
+            save_strategy="epoch",
+            evaluation_strategy="epoch",
+            learning_rate=args.learning_rate,
+            per_device_train_batch_size=args.batch_size,
+            per_device_eval_batch_size=args.batch_size,
+            num_train_epochs=args.num_epochs,
+            weight_decay=args.weight_decay,
+            load_best_model_at_end=True,
+            logging_steps=100,
+            logging_first_step=True,
+        )
+
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=tokenized_mct["train"],
+            eval_dataset=tokenized_mct["validation"],
+            tokenizer=tokenizer,
+            data_collator=DataCollatorForMultipleChoice(tokenizer=tokenizer),
+            callbacks=[early_stopping],
+            compute_metrics=compute_metrics,
+        )
+
+        print(f"DEVICE: {device}")
+        if device == "cuda":
+            model.cuda()
+
+        trainer.train()
 
 
 if __name__ == "__main__":
