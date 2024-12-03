@@ -17,7 +17,7 @@ from transformers.tokenization_utils_base import (
 from typing import Optional, Union
 import torch
 
-# we won't be using the Tensorboard
+# from transformers.integrations import TensorBoardCallBack
 
 from transformers import AutoModelForMultipleChoice, TrainingArguments, Trainer
 from tqdm import tqdm, trange
@@ -41,16 +41,17 @@ def parse_args():
         "--data_dir", type=str, default="", help="path to directory with mctest files"
     )
     # we may not need the one below
-    # parser.add_argument(
-    #     "--split", type=str, default="mc500.train", help=""
-    # )
+    # parser.add_argument("--split", type=str, default=".train", help="")
 
     # Output & logging
 
     # parser.add_argument(
     #     "--tb_dir`", type=str, default="", help="for connecting to tensorboard"
     # )
-    # parser.add_argument("--output_dir", type=str, default="", help="output results")
+
+    parser.add_argument(
+        "--output_dir", type=str, default="./outputs/", help="output results"
+    )
 
     # Model
 
@@ -61,7 +62,7 @@ def parse_args():
         "--from_pretrained", type=str, default="bert-base-multilingual-uncased"
     )
     parser.add_argument("--from_checkpoint", type=str, default="")
-    parser.add_argument("--device", type=str, default="cuda", choices=["cuda", "cpu"])
+    parser.add_argument("--device", type=str, default="cpu", choices=["cuda", "cpu"])
 
     # Training
     parser.add_argument(
@@ -92,7 +93,7 @@ def preprocess_function(examples):
     choices = []
 
     q2a_lut = {}
-    for q, a in zip(examples["questions"], examples["text_answer"]):
+    for q, a in zip(examples["question"], examples["text_answer"]):
         q2a_lut[q] = a
 
     # seperating tokens
@@ -182,12 +183,13 @@ def main():
     else:
         # Here they kill the job if there isn't any gpus
         print("Running on CPU")
+        device = torch.device("cpu")
         # they kill the job, but we will see if running on CPU is possible
         # print("Killing this job...")
         # exit(333)
 
     data_path = args.data_dir
-    split = args.split
+    # split = args.split
 
     # getting examples
     examples = load_dataset(f"{data_path}")
