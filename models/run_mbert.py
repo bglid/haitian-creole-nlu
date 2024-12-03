@@ -41,7 +41,7 @@ def parse_args():
         "--data_dir", type=str, default="", help="path to directory with mctest files"
     )
     # we may not need the one below
-    # parser.add_argument("--split", type=str, default=".train", help="")
+    parser.add_argument("--split", type=str, default=".train", help="")
 
     # Output & logging
 
@@ -62,14 +62,14 @@ def parse_args():
         "--from_pretrained", type=str, default="bert-base-multilingual-uncased"
     )
     parser.add_argument("--from_checkpoint", type=str, default="")
-    parser.add_argument("--device", type=str, default="cpu", choices=["cuda", "cpu"])
+    parser.add_argument("--device", type=str, default="cuda", choices=["cuda", "cpu"])
 
     # Training
     parser.add_argument(
         "--action", type=str, default="train", choices=["train", "evaluate", "test"]
     )
     parser.add_argument("--seed", type=int, default=12)
-    parser.add_argument("--batch_size", type=int, default=8)
+    parser.add_argument("--batch_size", type=int, default=4)
     parser.add_argument("--num_epochs", type=int, default=100)
     parser.add_argument(
         "--learning_rate", type=float, default=2e-5, help="former default was 5e-5"
@@ -189,7 +189,7 @@ def main():
         # exit(333)
 
     data_path = args.data_dir
-    # split = args.split
+    split = args.split
 
     # getting examples
     examples = load_dataset(f"{data_path}")
