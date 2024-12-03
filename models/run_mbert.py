@@ -182,8 +182,9 @@ def main():
     else:
         # Here they kill the job if there isn't any gpus
         print("Running on CPU")
-        print("Killing this job...")
-        exit(333)
+        # they kill the job, but we will see if running on CPU is possible
+        # print("Killing this job...")
+        # exit(333)
 
     data_path = args.data_dir
     split = args.split
@@ -239,6 +240,168 @@ def main():
             model.cuda()
 
         trainer.train()
+
+    elif args.action == "evaluate":
+        # load the trained model
+        model = AutoModelForMultipleChoice.from_pretrained(args.from_checkpoint).to(
+            device
+        )
+
+        # omitting experimental sub directory for now
+        training_args = TrainingArguments(
+            output_dir=os.path.join(args.output_dir),  # took out experiment directory
+            save_strategy="epoch",
+            evaluation_strategy="epoch",
+            learning_rate=args.learning_rate,
+            per_device_train_batch_size=args.batch_size,
+            per_device_eval_batch_size=args.batch_size,
+            num_train_epochs=args.num_epochs,
+            weight_decay=args.weight_decay,
+        )
+
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=tokenized_mct["train"],
+            eval_dataset=tokenized_mct["validation"],
+            tokenizer=tokenizer,
+            data_collator=DataCollatorForMultipleChoice(tokenizer=tokenizer),
+        )
+
+        if device == "cuda":
+            model.cuda()
+
+        # Setting model to Eval
+        model.eval()
+
+        eval_loss = 0
+        eval_accuracy = 0
+        nb_eval_steps = 0
+        nb_eval_examples = 0
+        nb_eval_batches = 0
+
+        preds_list = []
+        true_list = []
+
+        # opening dataloader for dev/validation
+        dev_dataloader = trainer.get_eval_dataloader()
+
+        for batch in tqdm(dev_dataloader, desc=f"Evaluating: {data_path}"):
+            # getting our input to evaluate for each batch
+            with torch.no_grad():
+                inputs = {
+                    "input_ids": batch["input_ids"].to(args.device),
+                    "attention_mask": batch["attention_mask"].to(args.device),
+                    "token_type_ids": batch["token_type_ids"].to(args.device),
+                    "labels": batch["labels"].to(args.device),
+                }
+
+                # calculating output and loss:
+                outputs = model(**inputs)
+                tmp_eval_loss, logits = outputs[:2]
+                eval_loss += tmp_eval_loss.mean().item()
+
+            logits = torch.logit.detach().cpu().numpy()
+            preds = np.argmax(logits, axis=1)
+            print(f"[eval] predictions: {preds}")
+            [preds_list.append(p) for p in preds]
+            label_ids = inputs["labels"].to("cpu").numpy()
+            print(f"[eval] labels: {label_ids}")
+            [true_list.append(label) for label in label_ids]
+
+            tmp_eval_accuracy = (preds == label_ids).astype(np.float32).mean().item()
+
+            eval_accuracy += tmp_eval_accuracy
+            nb_eval_steps += 1
+            nb_eval_examples += inputs["input_ids"].size(0)
+            nb_eval_batches += 1
+
+        eval_loss = eval_loss / nb_eval_steps
+        eval_accuracy = eval_accuracy / nb_eval_batches
+        result = {"eval_loss": eval_loss, "eval_accuracy": eval_accuracy}
+        print(result)
+
+    elif args.action == "test":
+        model = AutoModelForMultipleChoice.from_pretrained(args.from_checkpoint).to(
+            device
+        )
+
+        # not adding sub directory for time being
+
+        training_args = TrainingArguments(
+            output_dir=os.path.join(args.output_dir),  # took out experiment directory
+            save_strategy="epoch",
+            evaluation_strategy="epoch",
+            learning_rate=args.learning_rate,
+            per_device_train_batch_size=args.batch_size,
+            per_device_eval_batch_size=args.batch_size,
+            num_train_epochs=args.num_epochs,
+            weight_decay=args.weight_decay,
+        )
+
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=tokenized_mct["train"],
+            eval_dataset=tokenized_mct["test"],
+            tokenizer=tokenizer,
+            data_collator=DataCollatorForMultipleChoice(tokenizer=tokenizer),
+        )
+
+        if device == "cuda":
+            model.cuda()
+
+        # Setting model to Eval
+        model.eval()
+
+        test_loss = 0
+        test_accuracy = 0
+        nb_test_steps = 0
+        nb_test_examples = 0
+        nb_test_batches = 0
+
+        preds_list = []
+        true_list = []
+
+        test_dataloader = trainer.get_eval_dataloader()
+
+        for batch in tqdm(test_dataloader, desc=f"Evaluating TEST data: {data_path}"):
+            # getting our input to evaluate for each batch
+            with torch.no_grad():
+                inputs = {
+                    "input_ids": batch["input_ids"].to(args.device),
+                    "attention_mask": batch["attention_mask"].to(args.device),
+                    "token_type_ids": batch["token_type_ids"].to(args.device),
+                    "labels": batch["labels"].to(args.device),
+                }
+
+                # calculating output and loss:
+                outputs = model(**inputs)
+                tmp_test_loss, logits = outputs[:2]
+                test_loss += tmp_test_loss.mean().item()
+
+            logits = torch.logit.detach().cpu().numpy()
+            preds = np.argmax(logits, axis=1)
+            print(f"[test] predictions: {preds}")
+            [preds_list.append(p) for p in preds]
+            label_ids = inputs["labels"].to("cpu").numpy()
+            print(f"[test] labels: {label_ids}")
+            [true_list.append(label) for label in label_ids]
+
+            tmp_test_accuracy = (preds == label_ids).astype(np.float32).mean().item()
+
+            test_accuracy += tmp_test_accuracy
+            nb_test_steps += 1
+            nb_test_examples += inputs["input_ids"].size(0)
+            nb_test_batches += 1
+
+        test_loss = test_loss / nb_test_steps
+        test_accuracy = test_accuracy / nb_test_batches
+        result = {"test_loss": test_loss, "test_accuracy": test_accuracy}
+        print(result)
+
+    else:
+        print("Supported actions are only 'train', 'evaluate', or 'test'")
 
 
 if __name__ == "__main__":
