@@ -1,7 +1,5 @@
 import argparse
 import os
-import csv
-import json
 import random
 from _pytest.config import argparsing
 import numpy as np
@@ -20,7 +18,7 @@ import torch
 # from transformers.integrations import TensorBoardCallBack
 
 from transformers import AutoModelForMultipleChoice, TrainingArguments, Trainer
-from tqdm import tqdm, trange
+from tqdm import tqdm
 import evaluate
 
 # setting our eval and tokenizer
@@ -41,7 +39,7 @@ def parse_args():
         "--data_dir", type=str, default="", help="path to directory with mctest files"
     )
     # we may not need the one below
-    parser.add_argument("--split", type=str, default=".train", help="")
+    # parser.add_argument("--split", type=str, default=".train", help="")
 
     # Output & logging
 
@@ -69,7 +67,7 @@ def parse_args():
         "--action", type=str, default="train", choices=["train", "evaluate", "test"]
     )
     parser.add_argument("--seed", type=int, default=12)
-    parser.add_argument("--batch_size", type=int, default=4)
+    parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--num_epochs", type=int, default=100)
     parser.add_argument(
         "--learning_rate", type=float, default=2e-5, help="former default was 5e-5"
@@ -189,7 +187,7 @@ def main():
         # exit(333)
 
     data_path = args.data_dir
-    split = args.split
+    # split = args.split
 
     # getting examples
     examples = load_dataset(f"{data_path}")
@@ -280,10 +278,10 @@ def main():
         eval_accuracy = 0
         nb_eval_steps = 0
         nb_eval_examples = 0
-        nb_eval_batches = 0
+        # nb_eval_batches = 0 #same as eval steps
 
-        preds_list = []
-        true_list = []
+        # preds_list = []
+        # true_list = []
 
         # opening dataloader for dev/validation
         dev_dataloader = trainer.get_eval_dataloader()
@@ -306,20 +304,20 @@ def main():
             logits = torch.logit.detach().cpu().numpy()
             preds = np.argmax(logits, axis=1)
             print(f"[eval] predictions: {preds}")
-            [preds_list.append(p) for p in preds]
+            # [preds_list.append(p) for p in preds]
             label_ids = inputs["labels"].to("cpu").numpy()
             print(f"[eval] labels: {label_ids}")
-            [true_list.append(label) for label in label_ids]
+            # [true_list.append(label) for label in label_ids]
 
             tmp_eval_accuracy = (preds == label_ids).astype(np.float32).mean().item()
 
             eval_accuracy += tmp_eval_accuracy
-            nb_eval_steps += 1
+            nb_eval_steps += 1  # number of batches
             nb_eval_examples += inputs["input_ids"].size(0)
-            nb_eval_batches += 1
+            # nb_eval_batches += 1
 
         eval_loss = eval_loss / nb_eval_steps
-        eval_accuracy = eval_accuracy / nb_eval_batches
+        eval_accuracy = eval_accuracy / nb_eval_steps
         result = {"eval_loss": eval_loss, "eval_accuracy": eval_accuracy}
         print(result)
 
@@ -360,10 +358,11 @@ def main():
         test_accuracy = 0
         nb_test_steps = 0
         nb_test_examples = 0
-        nb_test_batches = 0
+        # nb_test_batches = 0
 
-        preds_list = []
-        true_list = []
+        # The following two variables don't get utilized
+        # preds_list = []
+        # true_list = []
 
         test_dataloader = trainer.get_eval_dataloader()
 
@@ -385,20 +384,20 @@ def main():
             logits = torch.logit.detach().cpu().numpy()
             preds = np.argmax(logits, axis=1)
             print(f"[test] predictions: {preds}")
-            [preds_list.append(p) for p in preds]
+            # [preds_list.append(p) for p in preds]
             label_ids = inputs["labels"].to("cpu").numpy()
             print(f"[test] labels: {label_ids}")
-            [true_list.append(label) for label in label_ids]
+            # [true_list.append(label) for label in label_ids]
 
             tmp_test_accuracy = (preds == label_ids).astype(np.float32).mean().item()
 
             test_accuracy += tmp_test_accuracy
-            nb_test_steps += 1
+            nb_test_steps += 1  # num batches
             nb_test_examples += inputs["input_ids"].size(0)
-            nb_test_batches += 1
+            # nb_test_batches += 1
 
         test_loss = test_loss / nb_test_steps
-        test_accuracy = test_accuracy / nb_test_batches
+        test_accuracy = test_accuracy / nb_test_steps
         result = {"test_loss": test_loss, "test_accuracy": test_accuracy}
         print(result)
 
