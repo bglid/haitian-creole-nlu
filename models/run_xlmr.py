@@ -131,11 +131,11 @@ class DataCollatorForMultipleChoice:
                 truncated_features.append(encoded_input)
             else:
                 trunc_input_ids = encoded_input["input_ids"][: self.max_len]
-                trunc_token_type_ids = encoded_input["token_type_ids"][: self.max_len]
+                # trunc_token_type_ids = encoded_input["token_type_ids"][: self.max_len]
                 trunc_attention_mask = encoded_input["attention_mask"][: self.max_len]
                 truncated_encoded_input = {
                     "input_ids": trunc_input_ids,
-                    "token_type_ids": trunc_token_type_ids,
+                    # "token_type_ids": trunc_token_type_ids,
                     "attention_mask": trunc_attention_mask,
                 }
                 truncated_features.append(truncated_encoded_input)
@@ -286,7 +286,7 @@ def main():
                 inputs = {
                     "input_ids": batch["input_ids"].to(args.device),
                     "attention_mask": batch["attention_mask"].to(args.device),
-                    "token_type_ids": batch["token_type_ids"].to(args.device),
+                    # "token_type_ids": batch["token_type_ids"].to(args.device),
                     "labels": batch["labels"].to(args.device),
                 }
 
@@ -366,7 +366,7 @@ def main():
                 inputs = {
                     "input_ids": batch["input_ids"].to(args.device),
                     "attention_mask": batch["attention_mask"].to(args.device),
-                    "token_type_ids": batch["token_type_ids"].to(args.device),
+                    # "token_type_ids": batch["token_type_ids"].to(args.device),
                     "labels": batch["labels"].to(args.device),
                 }
 
