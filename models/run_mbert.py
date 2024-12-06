@@ -15,8 +15,7 @@ from transformers.tokenization_utils_base import (
 from typing import Optional, Union
 import torch
 
-# from transformers.integrations import TensorBoardCallBack
-
+import wandb
 from transformers import AutoModelForMultipleChoice, TrainingArguments, Trainer
 from tqdm import tqdm
 import evaluate
@@ -209,9 +208,13 @@ def main():
             early_stopping_patience=10, early_stopping_threshold=0.001
         )
 
+        # initializing wandb for tracking
+        wandb.init(project="hc_nlu")
+
         # setting up training parameters from our parse_args
         training_args = TrainingArguments(
             output_dir=os.path.join(args.output_dir),  # took out experiment directory
+            report_to="wandb",
             save_strategy="epoch",
             evaluation_strategy="epoch",
             learning_rate=args.learning_rate,
@@ -247,9 +250,13 @@ def main():
             device
         )
 
+        # initializing wandb for tracking
+        wandb.init(project="hc_nlu")
+
         # omitting experimental sub directory for now
         training_args = TrainingArguments(
             output_dir=os.path.join(args.output_dir),  # took out experiment directory
+            report_to="wandb",
             save_strategy="epoch",
             evaluation_strategy="epoch",
             learning_rate=args.learning_rate,
