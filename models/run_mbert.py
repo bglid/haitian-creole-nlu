@@ -1,7 +1,8 @@
 import argparse
 import os
 import random
-from _pytest.config import argparsing
+
+# from _pytest.config import argparsing
 import numpy as np
 import transformers
 from transformers import AutoTokenizer, EarlyStoppingCallback
@@ -150,14 +151,15 @@ class DataCollatorForMultipleChoice:
 
         # Padding the input
         batch = self.tokenizer.pad(
-            truncated_features,
-            padding=True,
+            # truncated_features,
+            flattened_features,
+            padding="max_length",
             max_length=self.max_len,
             return_tensors="pt",
         )
 
         batch = {k: v.view(batch_size, num_choices, -1) for k, v in batch.items()}
-        labels_as_ints = [int(label) for label in labels]
+        labels_as_ints = [int(l) for l in labels]
         batch["labels"] = torch.tensor(labels_as_ints, dtype=torch.int64)
         input_ids = batch["input_ids"]
         return batch
@@ -252,6 +254,7 @@ def main():
         model = AutoModelForMultipleChoice.from_pretrained(args.from_checkpoint).to(
             device
         )
+        # tokenizer = AutoTokenizer.from_pretrained(args.from_checkpoint)
 
         # initializing wandb for tracking
         wandb.init(project="hc_nlu")
@@ -267,7 +270,7 @@ def main():
             per_device_train_batch_size=args.batch_size,
             per_device_eval_batch_size=args.batch_size,
             num_train_epochs=args.num_epochs,
-            weight_decay=args.weight_decay,
+            # weight_decay=args.weight_decay,
         )
 
         trainer = Trainer(
@@ -297,33 +300,33 @@ def main():
 
         # DEBUGGING!!!!
 
-        print("eval dataset examples:")
-        for idx, example in enumerate(tokenized_mct["validation"]):
-            # print(f"example {idx}: {example}")
-            # decoded_inputs = tokenizer.decode(example["input_ids"][0])
-            # print("Decoded input examples")
-            # print(decoded_inputs)
-            # print('labels')
-            # print(tokenizer.decode(example["labels"]))
-            question = example["question"]
-            choices = example["choices"]
-            label = example["label"]
-
-            # Debugging
-            correct_choice = choices[int(label)]
-            print(f"Example {idx}: Question: {question}")
-            print(f" Choices: {choices}")
-            print(f" Correct Choices (label {label}): {correct_choice}")
-            if idx >= 2:
-                break
+        # print("eval dataset examples:")
+        # for idx, example in enumerate(tokenized_mct["validation"]):
+        #     # print(f"example {idx}: {example}")
+        #     # decoded_inputs = tokenizer.decode(example["input_ids"][0])
+        #     # print("Decoded input examples")
+        #     # print(decoded_inputs)
+        #     # print('labels')
+        #     # print(tokenizer.decode(example["labels"]))
+        #     question = example["question"]
+        #     choices = example["choices"]
+        #     label = example["label"]
+        #
+        #     # Debugging
+        #     correct_choice = choices[int(label)]
+        #     print(f"Example {idx}: Question: {question}")
+        #     print(f" Choices: {choices}")
+        #     print(f" Correct Choices (label {label}): {correct_choice}")
+        #     if idx >= 2:
+        #         break
 
         # opening dataloader for dev/validation
         dev_dataloader = trainer.get_eval_dataloader()
 
         # debug
-        # for batch in dev_dataloader:
-        #     print(f"Input IDs: {batch['input_ids'][0]}")
-        #     print(f"Token Type IDs: {batch['token_type_ids'][0]}")
+        for batch in dev_dataloader:
+            #     print(f"Input IDs: {batch['input_ids'][0]}")
+            print(f"Token Type IDs: {batch['token_type_ids'][0]}")
         #     print(f"Attention Mask: {batch['attention_mask'][0]}")
         #     break
 
@@ -331,10 +334,10 @@ def main():
             # getting our input to evaluate for each batch
             with torch.no_grad():
                 inputs = {
-                    "input_ids": batch["input_ids"].to(args.device),
-                    "attention_mask": batch["attention_mask"].to(args.device),
-                    # "token_type_ids": batch["token_type_ids"].to(args.device),
-                    "labels": batch["labels"].to(args.device),
+                    "input_ids": batch["input_ids"].to(device),
+                    "attention_mask": batch["attention_mask"].to(device),
+                    "token_type_ids": batch["token_type_ids"].to(device),
+                    "labels": batch["labels"].to(device),
                 }
 
                 # calculating output and loss:

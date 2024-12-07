@@ -247,6 +247,7 @@ def main():
         model = AutoModelForMultipleChoice.from_pretrained(args.from_checkpoint).to(
             device
         )
+        # tokenizer = AutoTokenizer.from_pretrained(args.from_checkpoint)
 
         # initializing wandb for tracking
         wandb.init(project="hc_nlu")
@@ -262,7 +263,7 @@ def main():
             per_device_train_batch_size=args.batch_size,
             per_device_eval_batch_size=args.batch_size,
             num_train_epochs=args.num_epochs,
-            weight_decay=args.weight_decay,
+            # weight_decay=args.weight_decay,
         )
 
         trainer = Trainer(
