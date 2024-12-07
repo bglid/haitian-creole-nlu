@@ -67,6 +67,9 @@ def parse_args():
     )
     parser.add_argument("--weight_decay", type=float, default=0.01)
 
+    # Evaluation
+    parser.add_argument("--eval_batch_size", type=int, default=1)
+
     return parser.parse_args()
 
 
@@ -97,7 +100,7 @@ def preprocess_function(examples):
         for option in candidates:
             choices.append(f"{q} {sep_token} {option}")
 
-    tokenized_examples = tokenizer(story, choices, truncation=False)
+    tokenized_examples = tokenizer(story, choices, truncation=True)
     bb = {
         k: [v[i : i + 4] for i in range(0, len(v), 4)]
         for k, v in tokenized_examples.items()
@@ -142,7 +145,7 @@ class DataCollatorForMultipleChoice:
         # Padding the input
         batch = self.tokenizer.pad(
             truncated_features,
-            padding=True,
+            padding="max_length",
             max_length=self.max_len,
             return_tensors="pt",
         )
@@ -210,7 +213,8 @@ def main():
             output_dir=os.path.join(args.output_dir),  # took out experiment directory
             report_to="wandb",
             save_strategy="epoch",
-            evaluation_strategy="epoch",
+            # evaluation_strategy="epoch",
+            eval_strategy="epoch",
             learning_rate=args.learning_rate,
             per_device_train_batch_size=args.batch_size,
             per_device_eval_batch_size=args.batch_size,
@@ -226,7 +230,7 @@ def main():
             args=training_args,
             train_dataset=tokenized_mct["train"],
             eval_dataset=tokenized_mct["validation"],
-            tokenizer=tokenizer,
+            processing_class=tokenizer,
             data_collator=DataCollatorForMultipleChoice(tokenizer=tokenizer),
             callbacks=[early_stopping],
             compute_metrics=compute_metrics,
@@ -252,7 +256,8 @@ def main():
             output_dir=os.path.join(args.output_dir),  # took out experiment directory
             report_to="wandb",
             save_strategy="epoch",
-            evaluation_strategy="epoch",
+            # evaluation_strategy="epoch",
+            eval_strategy="epoch",
             learning_rate=args.learning_rate,
             per_device_train_batch_size=args.batch_size,
             per_device_eval_batch_size=args.batch_size,
@@ -265,7 +270,7 @@ def main():
             args=training_args,
             train_dataset=tokenized_mct["train"],
             eval_dataset=tokenized_mct["validation"],
-            tokenizer=tokenizer,
+            processing_class=tokenizer,
             data_collator=DataCollatorForMultipleChoice(tokenizer=tokenizer),
         )
 
@@ -302,9 +307,10 @@ def main():
                 tmp_eval_loss, logits = outputs[:2]
                 eval_loss += tmp_eval_loss.mean().item()
 
-            logits = torch.logit.detach().cpu().numpy()
+            logits = logits.detach().cpu().numpy()
             preds = np.argmax(logits, axis=1)
-            print(f"[eval] predictions: {preds}")
+            # print(f"Logits: {logits}")
+            # print(f"[eval] predictions: {preds}")
             # [preds_list.append(p) for p in preds]
             label_ids = inputs["labels"].to("cpu").numpy()
             print(f"[eval] labels: {label_ids}")
@@ -332,7 +338,8 @@ def main():
         training_args = TrainingArguments(
             output_dir=os.path.join(args.output_dir),  # took out experiment directory
             save_strategy="epoch",
-            evaluation_strategy="epoch",
+            # evaluation_strategy="epoch",
+            eval_strategy="epoch",
             learning_rate=args.learning_rate,
             per_device_train_batch_size=args.batch_size,
             per_device_eval_batch_size=args.batch_size,
@@ -382,7 +389,7 @@ def main():
                 tmp_test_loss, logits = outputs[:2]
                 test_loss += tmp_test_loss.mean().item()
 
-            logits = torch.logit.detach().cpu().numpy()
+            logits = logits.detach().cpu().numpy()
             preds = np.argmax(logits, axis=1)
             print(f"[test] predictions: {preds}")
             # [preds_list.append(p) for p in preds]

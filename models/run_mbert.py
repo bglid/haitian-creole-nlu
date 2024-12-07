@@ -73,6 +73,9 @@ def parse_args():
     )
     parser.add_argument("--weight_decay", type=float, default=0.01)
 
+    # Evaluation
+    parser.add_argument("--eval_batch_size", type=int, default=1)
+
     return parser.parse_args()
 
 
@@ -103,7 +106,7 @@ def preprocess_function(examples):
         for option in candidates:
             choices.append(f"{q} {sep_token} {option}")
 
-    tokenized_examples = tokenizer(story, choices, truncation=False)
+    tokenized_examples = tokenizer(story, choices, truncation=True)
     bb = {
         k: [v[i : i + 4] for i in range(0, len(v), 4)]
         for k, v in tokenized_examples.items()
@@ -216,7 +219,7 @@ def main():
             output_dir=os.path.join(args.output_dir),  # took out experiment directory
             report_to="wandb",
             save_strategy="epoch",
-            evaluation_strategy="epoch",
+            eval_strategy="epoch",
             learning_rate=args.learning_rate,
             per_device_train_batch_size=args.batch_size,
             per_device_eval_batch_size=args.batch_size,
@@ -232,7 +235,7 @@ def main():
             args=training_args,
             train_dataset=tokenized_mct["train"],
             eval_dataset=tokenized_mct["validation"],
-            tokenizer=tokenizer,
+            processing_class=tokenizer,
             data_collator=DataCollatorForMultipleChoice(tokenizer=tokenizer),
             callbacks=[early_stopping],
             compute_metrics=compute_metrics,
@@ -258,7 +261,8 @@ def main():
             output_dir=os.path.join(args.output_dir),  # took out experiment directory
             report_to="wandb",
             save_strategy="epoch",
-            evaluation_strategy="epoch",
+            # evaluation_strategy="epoch",
+            eval_strategy="epoch",
             learning_rate=args.learning_rate,
             per_device_train_batch_size=args.batch_size,
             per_device_eval_batch_size=args.batch_size,
@@ -271,7 +275,8 @@ def main():
             args=training_args,
             train_dataset=tokenized_mct["train"],
             eval_dataset=tokenized_mct["validation"],
-            tokenizer=tokenizer,
+            # tokenizer=tokenizer,
+            processing_class=tokenizer,
             data_collator=DataCollatorForMultipleChoice(tokenizer=tokenizer),
         )
 
@@ -285,13 +290,42 @@ def main():
         eval_accuracy = 0
         nb_eval_steps = 0
         nb_eval_examples = 0
-        # nb_eval_batches = 0 #same as eval steps
+        nb_eval_batches = 0
 
-        # preds_list = []
-        # true_list = []
+        preds_list = []
+        true_list = []
+
+        # DEBUGGING!!!!
+
+        print("eval dataset examples:")
+        for idx, example in enumerate(tokenized_mct["validation"]):
+            # print(f"example {idx}: {example}")
+            # decoded_inputs = tokenizer.decode(example["input_ids"][0])
+            # print("Decoded input examples")
+            # print(decoded_inputs)
+            # print('labels')
+            # print(tokenizer.decode(example["labels"]))
+            question = example["question"]
+            choices = example["choices"]
+            label = example["label"]
+
+            # Debugging
+            correct_choice = choices[int(label)]
+            print(f"Example {idx}: Question: {question}")
+            print(f" Choices: {choices}")
+            print(f" Correct Choices (label {label}): {correct_choice}")
+            if idx >= 2:
+                break
 
         # opening dataloader for dev/validation
         dev_dataloader = trainer.get_eval_dataloader()
+
+        # debug
+        # for batch in dev_dataloader:
+        #     print(f"Input IDs: {batch['input_ids'][0]}")
+        #     print(f"Token Type IDs: {batch['token_type_ids'][0]}")
+        #     print(f"Attention Mask: {batch['attention_mask'][0]}")
+        #     break
 
         for batch in tqdm(dev_dataloader, desc=f"Evaluating: {data_path}"):
             # getting our input to evaluate for each batch
@@ -299,7 +333,7 @@ def main():
                 inputs = {
                     "input_ids": batch["input_ids"].to(args.device),
                     "attention_mask": batch["attention_mask"].to(args.device),
-                    "token_type_ids": batch["token_type_ids"].to(args.device),
+                    # "token_type_ids": batch["token_type_ids"].to(args.device),
                     "labels": batch["labels"].to(args.device),
                 }
 
@@ -308,23 +342,24 @@ def main():
                 tmp_eval_loss, logits = outputs[:2]
                 eval_loss += tmp_eval_loss.mean().item()
 
-            logits = torch.logit.detach().cpu().numpy()
+            logits = logits.detach().cpu().numpy()
             preds = np.argmax(logits, axis=1)
+            # print(f"Logits: {logits}")
             print(f"[eval] predictions: {preds}")
-            # [preds_list.append(p) for p in preds]
+            [preds_list.append(p) for p in preds]
             label_ids = inputs["labels"].to("cpu").numpy()
             print(f"[eval] labels: {label_ids}")
-            # [true_list.append(label) for label in label_ids]
+            [true_list.append(label) for label in label_ids]
 
             tmp_eval_accuracy = (preds == label_ids).astype(np.float32).mean().item()
 
             eval_accuracy += tmp_eval_accuracy
             nb_eval_steps += 1  # number of batches
             nb_eval_examples += inputs["input_ids"].size(0)
-            # nb_eval_batches += 1
+            nb_eval_batches += 1
 
         eval_loss = eval_loss / nb_eval_steps
-        eval_accuracy = eval_accuracy / nb_eval_steps
+        eval_accuracy = eval_accuracy / nb_eval_batches
         result = {"eval_loss": eval_loss, "eval_accuracy": eval_accuracy}
         print(result)
 
@@ -338,7 +373,8 @@ def main():
         training_args = TrainingArguments(
             output_dir=os.path.join(args.output_dir),  # took out experiment directory
             save_strategy="epoch",
-            evaluation_strategy="epoch",
+            # evaluation_strategy="epoch",
+            eval_strategy="epoch",
             learning_rate=args.learning_rate,
             per_device_train_batch_size=args.batch_size,
             per_device_eval_batch_size=args.batch_size,
@@ -388,7 +424,7 @@ def main():
                 tmp_test_loss, logits = outputs[:2]
                 test_loss += tmp_test_loss.mean().item()
 
-            logits = torch.logit.detach().cpu().numpy()
+            logits = logits.detach().cpu().numpy()
             preds = np.argmax(logits, axis=1)
             print(f"[test] predictions: {preds}")
             # [preds_list.append(p) for p in preds]
