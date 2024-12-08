@@ -38,14 +38,8 @@ def parse_args():
     parser.add_argument(
         "--data_dir", type=str, default="", help="path to directory with mctest files"
     )
-    # we may not need the one below
-    # parser.add_argument("--split", type=str, default=".train", help="")
 
     # Output & logging
-
-    # parser.add_argument(
-    #     "--tb_dir`", type=str, default="", help="for connecting to tensorboard"
-    # )
 
     parser.add_argument(
         "--output_dir", type=str, default="./outputs/", help="output results"
@@ -102,7 +96,7 @@ def preprocess_function(examples):
 
     # getting question answer
     for q, candidates in zip(examples["question"], examples["choices"]):
-        answer = q2a_lut[q]
+        # answer = q2a_lut[q]
         # getting choices to tokenize
         for option in candidates:
             choices.append(f"{q} {sep_token} {option}")
@@ -186,12 +180,10 @@ def main():
         # Here they kill the job if there isn't any gpus
         print("Running on CPU")
         device = torch.device("cpu")
-        # they kill the job, but we will see if running on CPU is possible
-        # print("Killing this job...")
-        # exit(333)
+        print("Killing this job...")
+        exit(333)
 
     data_path = args.data_dir
-    # split = args.split
 
     # getting examples
     examples = load_dataset(f"{data_path}")
@@ -205,8 +197,6 @@ def main():
         model = AutoModelForMultipleChoice.from_pretrained(args.from_pretrained).to(
             device
         )
-
-        # reminder to set up Weights and Biases here~
 
         # early stopping for when the model converges early:
         early_stopping = EarlyStoppingCallback(
@@ -254,7 +244,6 @@ def main():
         model = AutoModelForMultipleChoice.from_pretrained(args.from_checkpoint).to(
             device
         )
-        # tokenizer = AutoTokenizer.from_pretrained(args.from_checkpoint)
 
         # initializing wandb for tracking
         wandb.init(project="hc_nlu")
@@ -264,7 +253,6 @@ def main():
             output_dir=os.path.join(args.output_dir),  # took out experiment directory
             report_to="wandb",
             save_strategy="epoch",
-            # evaluation_strategy="epoch",
             eval_strategy="epoch",
             learning_rate=args.learning_rate,
             per_device_train_batch_size=args.batch_size,
@@ -278,7 +266,6 @@ def main():
             args=training_args,
             train_dataset=tokenized_mct["train"],
             eval_dataset=tokenized_mct["validation"],
-            # tokenizer=tokenizer,
             processing_class=tokenizer,
             data_collator=DataCollatorForMultipleChoice(tokenizer=tokenizer),
         )
@@ -298,37 +285,8 @@ def main():
         preds_list = []
         true_list = []
 
-        # DEBUGGING!!!!
-
-        # print("eval dataset examples:")
-        # for idx, example in enumerate(tokenized_mct["validation"]):
-        #     # print(f"example {idx}: {example}")
-        #     # decoded_inputs = tokenizer.decode(example["input_ids"][0])
-        #     # print("Decoded input examples")
-        #     # print(decoded_inputs)
-        #     # print('labels')
-        #     # print(tokenizer.decode(example["labels"]))
-        #     question = example["question"]
-        #     choices = example["choices"]
-        #     label = example["label"]
-        #
-        #     # Debugging
-        #     correct_choice = choices[int(label)]
-        #     print(f"Example {idx}: Question: {question}")
-        #     print(f" Choices: {choices}")
-        #     print(f" Correct Choices (label {label}): {correct_choice}")
-        #     if idx >= 2:
-        #         break
-
         # opening dataloader for dev/validation
         dev_dataloader = trainer.get_eval_dataloader()
-
-        # debug
-        for batch in dev_dataloader:
-            #     print(f"Input IDs: {batch['input_ids'][0]}")
-            print(f"Token Type IDs: {batch['token_type_ids'][0]}")
-        #     print(f"Attention Mask: {batch['attention_mask'][0]}")
-        #     break
 
         for batch in tqdm(dev_dataloader, desc=f"Evaluating: {data_path}"):
             # getting our input to evaluate for each batch
@@ -371,12 +329,9 @@ def main():
             device
         )
 
-        # not adding sub directory for time being
-
         training_args = TrainingArguments(
             output_dir=os.path.join(args.output_dir),  # took out experiment directory
             save_strategy="epoch",
-            # evaluation_strategy="epoch",
             eval_strategy="epoch",
             learning_rate=args.learning_rate,
             per_device_train_batch_size=args.batch_size,
@@ -404,11 +359,6 @@ def main():
         test_accuracy = 0
         nb_test_steps = 0
         nb_test_examples = 0
-        # nb_test_batches = 0
-
-        # The following two variables don't get utilized
-        # preds_list = []
-        # true_list = []
 
         test_dataloader = trainer.get_eval_dataloader()
 
