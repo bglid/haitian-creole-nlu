@@ -13,3 +13,4 @@ transformers>=4.24.0
 tqdm
 accelerate
 wandb #weights and biases
+sacremoses #for running FLAUBERT
