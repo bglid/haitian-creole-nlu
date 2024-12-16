@@ -204,7 +204,7 @@ def main():
         )
 
         # initializing wandb for tracking
-        wandb.init(project="hc_nlu")
+        wandb.init(project="INSERT_YOUR_PROJECT_HERE")
 
         # setting up training parameters from our parse_args
         training_args = TrainingArguments(
@@ -246,7 +246,7 @@ def main():
         )
 
         # initializing wandb for tracking
-        wandb.init(project="hc_nlu")
+        wandb.init(project="INSERT_YOUR_PROJECT_HERE")
 
         # omitting experimental sub directory for now
         training_args = TrainingArguments(
