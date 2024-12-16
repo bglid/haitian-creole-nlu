@@ -1,6 +1,6 @@
 # Haitian Creole NLU Model
 
-Inspired by the CreoleVal paper, this project serves to recreate the Reading Comprehension NLU task. Our goal is to build upon the results achieved by the authors of said paper.
+Inspired by the CreoleVal paper, this project serves to recreate the Reading Comprehension NLU task. Our goal is to build upon the results achieved by the authors of said paper. Our group tested
 
 ## Setup
 
@@ -44,7 +44,42 @@ conda install pip
 python3 -m pip install -r requirements.txt
 ```
 
+*Lastly, cloning the repository of course:*
+
+```
+#Example cloning the web url to the repo:
+git clone https://github.com/bglid/haitian-creole-nlu.git
+```
+
 ## Running
+
+*This project is organized so that model training and evaluation is done by running shell scripts from the command line interface. NOTE: If you want to make adjustments, such as training or evaluating only one model, edit the .sh scripts.*
+
+**Running Model Training**
+```
+# To give Linux the permission to access the training script
+chmod +x train.sh
+
+#Running training script:
+./train.sh
+```
+
+**Running Model Evaluation**
+
+```
+# To give Linux the permission to access the evaluation script
+chmod +x evaluate.sh
+
+#Running training script:
+./evaluate.sh
+```
+
+#### Weights & Biases
+
+It's worth noting that there is functionality to track with WandB, which was our preferred method of tracking. If you decide you wish to do the same tracking, simply uncomment the lines such as `wandb.init(project="INSERT_YOUR_PROJECT")` and insert the name to your project.
+
+If you are running training/evaluation with Google Colab, you may simply be asked to link your colab API, and the above step can be skipped.
+
 
 ## Citing
 
