@@ -53,25 +53,26 @@ git clone https://github.com/bglid/haitian-creole-nlu.git
 
 ## Running
 
-*This project is organized so that model training and evaluation is done by running shell scripts from the command line interface. NOTE: If you want to make adjustments, such as training or evaluating only one model, edit the .sh scripts.*
+*This project is organized so that model training and evaluation is done by running shell scripts from the command line interface. NOTE: If you want to make adjustments, such as training or evaluating only one model, edit the .sh scripts. The following instructions below are for running from root directory of the project.*
 
 **Running Model Training**
+
 ```
 # To give Linux the permission to access the training script
-chmod +x train.sh
+chmod +x sh_scripts/train.sh
 
 #Running training script:
-./train.sh
+./sh_scripts/train.sh
 ```
 
 **Running Model Evaluation**
 
 ```
 # To give Linux the permission to access the evaluation script
-chmod +x evaluate.sh
+chmod +x sh_scripts/evaluate.sh
 
 #Running training script:
-./evaluate.sh
+./sh_scripts/evaluate.sh
 ```
 
 #### Weights & Biases
@@ -79,7 +80,6 @@ chmod +x evaluate.sh
 It's worth noting that there is functionality to track with WandB, which was our preferred method of tracking. If you decide you wish to do the same tracking, simply uncomment the lines such as `wandb.init(project="INSERT_YOUR_PROJECT")` and insert the name to your project.
 
 If you are running training/evaluation with Google Colab, you may simply be asked to link your colab API, and the above step can be skipped.
-
 
 ## Citing
 
